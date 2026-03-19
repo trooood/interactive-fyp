@@ -1,17 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive FYP</title>
+    <head>
+        <title>d3-x3d : 3D Scatter Plot Chart Example</title>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://x3dom.org/release/x3dom-full.js"></script>
+        <link rel="stylesheet" href="https://x3dom.org/release/x3dom.css"/>
+        <script src="dist/d3-x3d.js"></script>
+    </head>
 
-    <style>
-    </style>
+    <body>
 
-</head>
-<body>
-    <h1>Hello World</h1>
+        <div id="chartholder"></div>
+        <input type="button" id="refresh" value="Refresh"/>
 
-</body>
+        <script>
+            // Select chartholder
+            var chartHolder = d3.select("#chartholder");
+
+            // Declare the chart component
+            var myChart = d3.x3d.chart.scatterPlot()
+                .mappings({ x: 'x', y: 'y', z: 'z', color: 'color', size: 'size' })
+                .colors(d3.schemeRdYlGn[8])
+                .sizeRange([0.1, 0.5]);
+
+
+            // initialize so that the chart appears
+            var initialize = function() {
+                var testData = {
+                    values: [
+                        {
+                            key: "init1",
+                            values: [
+                                { key: "x", value: -0.006 },
+                                { key: "y", value: 0 },
+                                { key: "z", value: 0 },
+                                { key: "color", value: 0 },
+                                { key: "size", value: 0 }
+                            ]
+                        },
+                        {
+                            key: "init2",
+                            values: [
+                                { key: "x", value: 0.006 },
+                                { key: "y", value: 0 },
+                                { key: "z", value: 0 },
+                                { key: "color", value: 0 },
+                                { key: "size", value: 0 }
+                            ]
+                        },
+                        {
+                            key: "init3",
+                            values: [
+                                { key: "x", value: 0 },
+                                { key: "y", value: 0.00045 },
+                                { key: "z", value: 0 },
+                                { key: "color", value: 0 },
+                                { key: "size", value: 0 }
+                            ]
+                        },
+                        {
+                            key: "init4",
+                            values: [
+                                { key: "x", value: 0 },
+                                { key: "y", value: 0.0375 },
+                                { key: "z", value: 0 },
+                                { key: "color", value: 0 },
+                                { key: "size", value: 0 }
+                            ]
+                        },
+                        {
+                            key: "init5",
+                            values: [
+                                { key: "x", value: 0 },
+                                { key: "y", value: 0 },
+                                { key: "z", value: -0.006 },
+                                { key: "color", value: 0 },
+                                { key: "size", value: 0 }
+                            ]
+                        },
+                        {
+                            key: "init6",
+                            values: [
+                                { key: "x", value: 0 },
+                                { key: "y", value: 0 },
+                                { key: "z", value: 0.006 },
+                                { key: "color", value: 0 },
+                                { key: "size", value: 0 }
+                            ]
+                        },
+                    ]
+                };
+                
+                chartHolder.datum(testData).call(myChart);
+            };
+
+
+            // Call test to verify chart works
+            initialize();
+
+
+            // Function to refresh chart with data
+            var refreshChart = function() {  // default variable to plot
+                
+                d3.csv("data/3_sample.csv").then(data => {
+                    console.log("Total rows:", data.length);
+
+
+                    // Create the nested structure that d3-x3d expects
+                    var chartData = {
+                        values: data.map((d, i) => ({
+                            key: "Bubbles",
+                            values: [
+                                { key: "x", value: +d.x },
+                                { key: "y", value: +d.y },
+                                { key: "z", value: +d.z },
+                                { key: "color", value: +d.T },
+                                { key: "size", value: 0.1 }
+                            ]
+                        }))
+                    };
+
+                    // Print ranges for x, y, z
+                    console.log("=== Data Ranges ===");
+                    console.log("X range:", d3.min(data, d => +d.x), "to", d3.max(data, d => +d.x));
+                    console.log("Y range:", d3.min(data, d => +d.y), "to", d3.max(data, d => +d.y));
+                    console.log("Z range:", d3.min(data, d => +d.z), "to", d3.max(data, d => +d.z));
+                
+                    // Log to verify structure
+                    console.log("First data point structure:", chartData.values[0]);
+                    console.log("Values array:", chartData.values[0].values);
+
+                    // Call the chart
+                    chartHolder.datum(chartData).call(myChart);
+                    console.log("Chart render called");
+
+                });
+
+
+            };
+
+            // Hook a button to refresh chart
+            d3.select("#refresh").attr("onclick", "refreshChart()");
+
+            // Initial render
+            refreshChart();
+
+
+
+        </script>
+
+
+        <br/>
+        <div style="clear: both">Created with <a href="https://github.com/jamesleesaunders/d3-x3d">d3-x3d</a> D3 X3D Data
+        Visualization Library.
+        </div>
+
+
+    </body>
+
+
+
+
+
 </html>
