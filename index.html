@@ -2,17 +2,20 @@
 <html lang="en">
 
     <head>
-        <title>d3-x3d : 3D Scatter Plot Chart Example</title>
+        <title>Interactive FYP</title>
         <script src="dist/d3.v7.min.js"></script>
         <script src="dist/x3dom-full.js"></script>
         <link rel="stylesheet" href="https://x3dom.org/release/x3dom.css"/>
         <script src="dist/d3-x3d.js"></script>
+        <script src="chart-init.js"></script>  <!-- init chart with correct ranges -->
     </head>
 
     <body>
 
         <div id="chartholder"></div>
-        <input type="button" id="refresh" value="Refresh"/>
+        <!-- <input type="button" id="refresh" value="Refresh"/> -->
+        <input type="button" id="temp" value="Temperature"/>
+        <input type="button" id="mach" value="Mach number (magnitude)"/>
 
         <script>
             // Select chartholder
@@ -26,8 +29,9 @@
 
 
             // initialize so that the chart appears
+            /*
             var initialize = function() {
-                var testData = {
+                var initData = {
                     values: [
                         {
                             key: "init1",
@@ -92,13 +96,11 @@
                     ]
                 };
                 
-                chartHolder.datum(testData).call(myChart);
+                chartHolder.datum(initData).call(myChart);
             };
+            */
 
-
-            // Call test to verify chart works
             initialize();
-
 
             // Function to refresh chart with data
             var refreshChart = function() {  // default variable to plot
@@ -121,20 +123,10 @@
                         }))
                     };
 
-                    // Print ranges for x, y, z
-                    console.log("=== Data Ranges ===");
-                    console.log("X range:", d3.min(data, d => +d.x), "to", d3.max(data, d => +d.x));
-                    console.log("Y range:", d3.min(data, d => +d.y), "to", d3.max(data, d => +d.y));
-                    console.log("Z range:", d3.min(data, d => +d.z), "to", d3.max(data, d => +d.z));
-                
-                    // Log to verify structure
-                    console.log("First data point structure:", chartData.values[0]);
-                    console.log("Values array:", chartData.values[0].values);
 
                     // Call the chart
                     chartHolder.datum(chartData).call(myChart);
-                    console.log("Chart render called");
-
+                    
                 });
 
 
