@@ -14,129 +14,74 @@
 
         <div id="chartholder"></div>
         <!-- <input type="button" id="refresh" value="Refresh"/> -->
+        <input type="button" id="mach" value="Mach number"/>
         <input type="button" id="temp" value="Temperature"/>
-        <input type="button" id="mach" value="Mach number (magnitude)"/>
+        
 
         <script>
             // Select chartholder
             var chartHolder = d3.select("#chartholder");
 
             // Declare the chart component
+            var plasmaColors = d3.quantize(d3.interpolatePlasma, 8);  // create array
             var myChart = d3.x3d.chart.scatterPlot()
                 .mappings({ x: 'x', y: 'y', z: 'z', color: 'color', size: 'size' })
-                .colors(d3.schemeRdYlGn[8])
+                .colors(plasmaColors)
                 .sizeRange([0.1, 0.5]);
 
-
-            // initialize so that the chart appears
-            /*
-            var initialize = function() {
-                var initData = {
-                    values: [
-                        {
-                            key: "init1",
-                            values: [
-                                { key: "x", value: -0.006 },
-                                { key: "y", value: 0 },
-                                { key: "z", value: 0 },
-                                { key: "color", value: 0 },
-                                { key: "size", value: 0 }
-                            ]
-                        },
-                        {
-                            key: "init2",
-                            values: [
-                                { key: "x", value: 0.006 },
-                                { key: "y", value: 0 },
-                                { key: "z", value: 0 },
-                                { key: "color", value: 0 },
-                                { key: "size", value: 0 }
-                            ]
-                        },
-                        {
-                            key: "init3",
-                            values: [
-                                { key: "x", value: 0 },
-                                { key: "y", value: 0.00045 },
-                                { key: "z", value: 0 },
-                                { key: "color", value: 0 },
-                                { key: "size", value: 0 }
-                            ]
-                        },
-                        {
-                            key: "init4",
-                            values: [
-                                { key: "x", value: 0 },
-                                { key: "y", value: 0.0375 },
-                                { key: "z", value: 0 },
-                                { key: "color", value: 0 },
-                                { key: "size", value: 0 }
-                            ]
-                        },
-                        {
-                            key: "init5",
-                            values: [
-                                { key: "x", value: 0 },
-                                { key: "y", value: 0 },
-                                { key: "z", value: -0.006 },
-                                { key: "color", value: 0 },
-                                { key: "size", value: 0 }
-                            ]
-                        },
-                        {
-                            key: "init6",
-                            values: [
-                                { key: "x", value: 0 },
-                                { key: "y", value: 0 },
-                                { key: "z", value: 0.006 },
-                                { key: "color", value: 0 },
-                                { key: "size", value: 0 }
-                            ]
-                        },
-                    ]
-                };
-                
-                chartHolder.datum(initData).call(myChart);
-            };
-            */
-
+            var dataCache = null;  // for data cache
+            
             initialize();
 
-            // Function to refresh chart with data
-            var refreshChart = function() {  // default variable to plot
+            // load data into cache
+            function loadChartData() {
+                if (dataCache) {
+                    return Promise.resolve(dataCache);
+                }
                 
-                d3.csv("data/3_sample1000.csv").then(data => {
+                return d3.csv("data/3_sample1000.csv").then(data => {
                     console.log("Total rows:", data.length);
-
-
-                    // Create the nested structure that d3-x3d expects
-                    var chartData = {
-                        values: data.map((d, i) => ({
-                            key: "Bubbles",
-                            values: [
-                                { key: "x", value: +d.x },
-                                { key: "y", value: +d.y },
-                                { key: "z", value: +d.z },
-                                { key: "color", value: +d.T },
-                                { key: "size", value: 0.1 }
-                            ]
-                        }))
-                    };
-
-
-                    // Call the chart
-                    chartHolder.datum(chartData).call(myChart);
-                    
+                    dataCache = data;
+                    return data;
                 });
+            }
+
+            // map csv data to chart structure
+            function mapData(data, colorColumn) {
+                return {
+                    values: data.map(d => ({
+                        key: "Bubbles",
+                        values: [
+                            { key: "x", value: +d.x },
+                            { key: "y", value: +d.y },
+                            { key: "z", value: +d.z },
+                            { key: "color", value: +d[colorColumn] },
+                            { key: "size", value: 0.1 }
+                        ]
+                    }))
+                };
+            }
+
+            // call chart
+            function renderChart(colorColumn) {
+                loadChartData().then(data => {
+                    var chartData = mapData(data, colorColumn);
+                    chartHolder.datum(chartData).call(myChart);
+                });
+            }
 
 
-            };
 
             // Hook a button to refresh chart
-            d3.select("#refresh").attr("onclick", "refreshChart()");
+            //d3.select("#refresh").attr("onclick", "refreshChart()");
+            // Button click handlers
+            document.getElementById('mach').addEventListener('click', () => renderChart('Mach_mag'));
+            document.getElementById('temp').addEventListener('click', () => renderChart('T'));
+            
+
 
             // Initial render
-            refreshChart();
+            renderChart('Mach_mag');  // default
 
 
 
