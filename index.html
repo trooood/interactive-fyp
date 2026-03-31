@@ -13,12 +13,7 @@
     <body>
 
         <div id="chartholder"></div>
-        <!-- <input type="button" id="refresh" value="Refresh"/> -->
-        Colour scheme:
-        <input type="button" id="colour_plasma" value="Plasma"/>
-
-
-        <br/>
+        <!-- <input type="button" id="refresh" value="Refresh"/> -->        
 
         Data columns:
         <input type="button" id="data_mach" value="Mach number"/>
@@ -28,33 +23,49 @@
         <input type="button" id="data_pressure" value="Pressure"/>
         <input type="button" id="data_rho" value="Density"/>
 
+        <br/>
+
+        Colour scheme:
+        <input type="button" id="colour_turbo" value="Turbo"/>
+        <input type="button" id="colour_plasma" value="Plasma"/>
+        <input type="button" id="colour_greys" value="Greys"/>
+        <input type="button" id="colour_spectral" value="Spectral"/>
+        <input type="button" id="colour_sinebow" value="Sinebow"/>
+
+        <br/><br/>
+        Zoom in/out: scroll up/down<br/>
+        Rotate: click + drag<br/>
+        Pan: middle click + drag<br/>
 
         <script>
             // Select chartholder
             var chartHolder = d3.select("#chartholder");
 
             // load colour arrays
-            var plasmaColors = d3.quantize(d3.interpolatePlasma, 8);  // create array
+            var turboColors = d3.quantize(d3.interpolateTurbo, 8);  // create array from continuous scheme
+            var plasmaColors = d3.quantize(d3.interpolatePlasma, 8);
+            var greysColors = d3.quantize(d3.interpolateGreys, 8);
+            var spectralColors = d3.quantize(d3.interpolateSpectral, 8).reverse();  // reversed
+            var sinebowColors = d3.quantize(d3.interpolateSinebow, 8).reverse();  // reversed
 
             // Declare the chart component
             var myChart = d3.x3d.chart.scatterPlot()
                 .mappings({ x: 'x', y: 'y', z: 'z', color: 'color', size: 'size' })
-                .colors(plasmaColors)
+                .colors(turboColors)  // default colur scheme
                 .sizeRange([0.1, 1.0]);
 
-            var dataCache = null;  // for data cache
-            
-            initialize();
+            var dataCache = null;  // init data cache
+            var currentDataColumn = 'Mach_mag';  // default column
 
             // load data into cache
-            function loadChartData() {
+            function loadData() {
                 if (dataCache) {
                     return Promise.resolve(dataCache);
                 }
                 
                 return d3.csv("data/3_sample1000.csv").then(data => {
                     console.log("Total rows:", data.length);
-                    dataCache = data;
+                    dataCache = data;  // cache data when loaded
                     return data;
                 });
             }
@@ -63,7 +74,7 @@
             function mapData(data, colorColumn) {
                 return {
                     values: data.map(d => ({
-                        key: "Bubbles",
+                        key: "data",
                         values: [
                             { key: "x", value: +d.x },
                             { key: "y", value: +d.y },
@@ -75,9 +86,23 @@
                 };
             }
 
+            function setColorScheme(scheme) {
+                if (scheme === 'turbo') { myChart.colors(turboColors); }
+                else if (scheme === 'plasma') { myChart.colors(plasmaColors) }
+                else if (scheme === 'greys') { myChart.colors(greysColors) }
+                else if (scheme === 'spectral') { myChart.colors(spectralColors) }
+                else if (scheme === 'sinebow') { myChart.colors(sinebowColors) }
+
+                
+                // Re-render with current data column
+                renderChart(currentDataColumn);
+            }
+
             // call chart
             function renderChart(colorColumn) {
-                loadChartData().then(data => {
+                currentDataColumn = colorColumn;
+
+                loadData().then(data => {
                     var chartData = mapData(data, colorColumn);
                     chartHolder.datum(chartData).call(myChart);
                 });
@@ -96,17 +121,24 @@
             document.getElementById('data_pressure').addEventListener('click', () => renderChart('p'));
             document.getElementById('data_rho').addEventListener('click', () => renderChart('rho'));
 
+            // buttons for colour scheme
+            document.getElementById('colour_turbo').onclick = () => setColorScheme('turbo');
+            document.getElementById('colour_plasma').onclick = () => setColorScheme('plasma');
+            document.getElementById('colour_greys').onclick = () => setColorScheme('greys');
+            document.getElementById('colour_spectral').onclick = () => setColorScheme('spectral');
+            document.getElementById('colour_sinebow').onclick = () => setColorScheme('sinebow');
 
 
             // Initial render
+            initialize();
             renderChart('Mach_mag');  // default
 
 
 
         </script>
 
-        <br/>
-        <br/>
+        <br/><br/>
+        
         <div style="clear: both">Created with <a href="https://github.com/jamesleesaunders/d3-x3d">d3-x3d</a> D3 X3D Data
         Visualization Library.
         </div>
