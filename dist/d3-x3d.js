@@ -1467,7 +1467,7 @@
           return labelInset * d * tickPadding + (labelInset + 1) / 2 * tickSize * tickDirectionVector[i];
         })).append("Billboard").attr("axisOfRotation", "0 0 0").append("Shape").call(makeSolid, "black").append("Text").attr("string", function (d) {
           return "\"".concat(tickFormat(d), "\"");
-        }).append("FontStyle").attr("size", 1.3).attr("family", "\"SANS\"").attr("style", "BOLD").attr("justify", "\"MIDDLE\" \"MIDDLE\"").merge(labels);
+        }).append("FontStyle").attr("size", 1.7).attr("family", "\"TIMES\"").attr("style", "NORMAL").attr("justify", "\"MIDDLE\" \"MIDDLE\"").merge(labels);
         labels.transition().attr("translation", function (t) {
           return axisDirectionVector.map(function (a) {
             return scale(t) * a;
@@ -3427,7 +3427,7 @@
           return offset + " " + offset + " " + offset;
         }).append("Shape").call(makeSolid, color).append("Text").attr("string", function (d) {
           return d.key;
-        }).append("FontStyle").attr("size", 1).attr("family", "SANS").attr("style", "BOLD").attr("justify", "START");
+        }).append("FontStyle").attr("size", 1).attr("family", "TIMES").attr("style", "NORMAL").attr("justify", "START");
         label.merge(labelSelect);
         labelSelect.transition().ease(d3__namespace.easeQuadOut).attr("translation", function (d) {
           return xScale(d.x) + " " + yScale(d.y) + " " + zScale(d.z);
