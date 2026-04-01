@@ -15,8 +15,8 @@
         <div id="chartholder"></div>
         <!-- <input type="button" id="refresh" value="Refresh"/> -->
 
-        Time: t=
-        <input type="range" min="0" max="5" step="1" value="0" id="timestep">
+        Time: (slider doesn't work yet)
+        <input type="range" min="0" max="5" step="1" value="0" id="timestep" list="timesteps" style="width: 200px">
         <datalist id="timesteps">
         <option value="0" label="0"></option>
         <option value="1" label="0.00005"></option>
@@ -25,6 +25,7 @@
         <option value="4" label="0.0002"></option>
         <option value="5" label="0.00025"></option>
         </datalist>
+        t = <span id="timestep-value">0</span>
 
         <br/>
 
@@ -70,8 +71,20 @@
             var dataCache = null;  // init data cache
             var currentDataColumn = 'Mach_mag';  // default column
 
+            // for timestep slider
+            const timestepMap = [0, 0.00005, 0.0001, 0.00015, 0.0002, 0.00025];  // map timesteps. not sure if this is needed
             const slider = document.getElementById('timestep');
-            const timestepMap = [0.000002, 0.00005, 0.0001, 0.00015, 0.0002, 0.00025];  // map timesteps. not sure if this is needed
+            const display = document.getElementById('timestep-value');
+
+            function updateTimestep() {
+                const index = parseInt(slider.value);
+                const actualValue = timestepMap[index];
+                display.textContent = actualValue;  // use this to show actual value instead of 0 (approx)
+                console.log('Index:', index, 'Timestep:', actualValue);  // print index for linking to sample
+            }
+
+            //slider.addEventListener('input', updateTimestep);
+            //updateTimestep(); // Set initial value
 
             // load data into cache
             function loadData() {
@@ -144,12 +157,15 @@
             document.getElementById('colour_spectral').addEventListener('click', () => setColorScheme('spectral'));
             document.getElementById('colour_sinebow').addEventListener('click', () => setColorScheme('sinebow'));
 
+            slider.addEventListener('input', updateTimestep);
+            updateTimestep(); // Set initial value
 
+            /*
             slider.addEventListener('input', function() {
                 const actualValue = timestepMap[this.value];  // if don't need actual value can remove
                 console.log('Timestep:', actualValue);
             });
-
+            */
 
             // Initial render
             initialize();
