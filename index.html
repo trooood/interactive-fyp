@@ -96,7 +96,7 @@
                     return Promise.resolve(dataCache[index]);
                 }
 
-                const filename = `data_yupdate/${index}_sample1000.csv`;
+                const filename = `data/${index}_sample1000.csv`;
                 console.log(`Loading: ${filename}`);
                 
                 return d3.csv(filename).then(data => {
