@@ -68,7 +68,8 @@
                 .colors(turboColors)  // default colur scheme
                 .sizeRange([0.1, 1.0]);
 
-            var dataCache = null;  // init data cache
+            //var dataCache = null;  // init data cache
+            const dataCache = {};
             var currentDataColumn = 'Mach_mag';  // default column
 
             // for timestep slider
@@ -81,20 +82,24 @@
                 const actualValue = timestepMap[index];
                 display.textContent = actualValue;  // use this to show actual value instead of 0 (approx)
                 console.log('Index:', index, 'Timestep:', actualValue);  // print index for linking to sample
+                updateChartIndex(index, currentDataColumn);
             }
 
             //slider.addEventListener('input', updateTimestep);
             //updateTimestep(); // Set initial value
 
             // load data into cache
-            function loadData() {
-                if (dataCache) {
-                    return Promise.resolve(dataCache);
+            function loadData(index) {
+                if (dataCache[index]) {  // if already cached
+                    return Promise.resolve(dataCache[index]);
                 }
+
+                const filename = `data/${index}_sample1000.csv`;
+                console.log(`Loading: ${filename}`);
                 
-                return d3.csv("data/3_sample1000.csv").then(data => {
-                    console.log("Total rows:", data.length);
-                    dataCache = data;  // cache data when loaded
+                return d3.csv(filename).then(data => {
+                    console.log(`Loaded index ${index}:`, data.length, "rows");
+                    dataCache[index] = data;  // cache data when loaded
                     return data;
                 });
             }
@@ -131,9 +136,17 @@
             function renderChart(colorColumn) {
                 currentDataColumn = colorColumn;
 
-                loadData().then(data => {
+                loadData(0).then(data => {
                     var chartData = mapData(data, colorColumn);
                     chartHolder.datum(chartData).call(myChart);
+                });
+            }
+
+            function updateChartIndex(index, colorColumn) {
+                loadData(index).then(data => {
+                    var chartData = mapData(data, colorColumn);
+                    chartHolder.datum(chartData).call(myChart);
+                    console.log(`Updated chart to index ${index}`);
                 });
             }
 
@@ -158,7 +171,8 @@
             document.getElementById('colour_sinebow').addEventListener('click', () => setColorScheme('sinebow'));
 
             slider.addEventListener('input', updateTimestep);
-            updateTimestep(); // Set initial value
+            //updateTimestep(); // Set initial value
+            updateChartIndex(0, 'Mach_mag');
 
             /*
             slider.addEventListener('input', function() {
