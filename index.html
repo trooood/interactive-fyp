@@ -25,17 +25,20 @@
         <option value="4" label="0.0002"></option>
         <option value="5" label="0.00025"></option>
         </datalist>
-        t = <span id="timestep-value">0</span> <span id="loading-text"></span>
+        t = <span id="timestep-value">0</span> seconds
+        <!-- <span id="loading-text"></span> -->
 
         <br/>
 
         Data columns:
-        <input type="button" id="data_mach" value="Mach number"/>
+        <input type="button" id="data_mach" value="Mach Number"/>
         <input type="button" id="data_velocity" value="Velocity"/>
         <input type="button" id="data_temp" value="Temperature"/>
-        <input type="button" id="data_h2" value="Hydrogen concentration"/>
+        <input type="button" id="data_h2" value="Hydrogen Concentration"/>
         <input type="button" id="data_pressure" value="Pressure"/>
         <input type="button" id="data_rho" value="Density"/>
+
+        <div id="data-minmax"></div>
 
         <br/>
 
@@ -45,6 +48,8 @@
         <input type="button" id="colour_greys" value="Greys"/>
         <input type="button" id="colour_spectral" value="Spectral"/>
         <input type="button" id="colour_sinebow" value="Sinebow"/>
+
+        <div id="colourscheme-name"></div>
 
         <br/><br/>
         Zoom in/out: scroll up/down<br/>
@@ -64,6 +69,8 @@
 
             // Declare the chart component
             var myChart = d3.x3d.chart.scatterPlot()
+                .width(600)
+                .height(600)
                 .mappings({ x: 'x', y: 'y', z: 'z', color: 'color', size: 'size' })
                 .colors(turboColors)  // default colur scheme
                 .sizeRange([0.1, 1.0]);
@@ -77,6 +84,33 @@
             const timestepMap = [0, 0.00005, 0.0001, 0.00015, 0.0002, 0.00025];  // map timesteps. not sure if this is needed
             const slider = document.getElementById('timestep');
             const display = document.getElementById('timestep-value');
+
+            // for getting the values from the buttons
+            const columnNames = {
+                'Mach_mag': 'Mach Number',
+                'U_mag': 'Velocity',
+                'T': 'Temperature',
+                'H2': 'Hydrogen concentration',
+                'p': 'Pressure',
+                'rho': 'Density'
+            };
+
+            // for getting the names of the colour scheme
+            const colourSchemeNames = {
+                'turbo': 'Turbo',
+                'plasma': 'Plasma',
+                'greys': 'Greys',
+                'spectral': 'Spectral',
+                'sinebow': 'Sinebow'
+            };
+
+            const colourArrays = {
+                'turbo': turboColors,
+                'plasma': plasmaColors,
+                'greys': greysColors,
+                'spectral': spectralColors,
+                'sinebow': sinebowColors
+            };
 
             function updateTimestep() {
                 const index = parseInt(slider.value);
@@ -108,7 +142,19 @@
 
             // map csv data to chart structure
             function mapData(data, colorColumn) {
-                return {
+
+                const colorValues = data.map(d => +d[colorColumn]);  // gets the stats from the data
+                const min = Math.min(...colorValues);
+                const max = Math.max(...colorValues);
+
+                const displayName = columnNames[colorColumn];
+                const displayElement = document.getElementById('data-minmax');
+
+                if (displayElement) {
+                    displayElement.textContent = `Currently showing ${displayName}; min = ${min.toFixed(2)}, max = ${max.toFixed(2)}`;
+                }
+                
+                return {  // mapped values
                     values: data.map(d => ({
                         key: "data",
                         values: [
@@ -129,10 +175,21 @@
                 else if (scheme === 'spectral') { myChart.colors(spectralColors) }
                 else if (scheme === 'sinebow') { myChart.colors(sinebowColors) }
 
-                
+                const displayName = colourSchemeNames[scheme];
+                const colourArray = colourArrays[scheme];
+                if (colourArray) {
+                    myChart.colors(colourArray);
+                    
+                    // Optional: Update a display element to show current scheme
+                    const schemeDisplay = document.getElementById('colourscheme-name');
+                    if (schemeDisplay) {
+                        schemeDisplay.textContent = `Current scheme: ${displayName}`;
+                    }
+                    updateChartIndex(currentSliderIndex, currentDataColumn);
+                }
+
                 // Re-render with current data column
-                //renderChart(currentSliderIndex, currentDataColumn);
-                updateChartIndex(currentSliderIndex, currentDataColumn);
+                //updateChartIndex(currentSliderIndex, currentDataColumn);
             }
 
             // call chart
@@ -151,7 +208,7 @@
             function updateChartIndex(index, colorColumn) {
                 loadData(index).then(data => {
                     var chartData = mapData(data, colorColumn);
-                    chartHolder.datum(chartData).call(myChart);
+                    chartHolder.datum(chartData).call(myChart);  // this calls the chart
                     console.log(`Updated chart to index ${index}`);
                 });
             }
@@ -191,6 +248,7 @@
             // Initial render
             initialize();
             renderChart('Mach_mag');  // default
+            setColorScheme('turbo');
 
 
 
