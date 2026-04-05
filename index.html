@@ -15,7 +15,7 @@
         <div id="chartholder"></div>
         <!-- <input type="button" id="refresh" value="Refresh"/> -->
 
-        Time: (slider doesn't work yet)
+        Time:
         <input type="range" min="0" max="5" step="1" value="0" id="timestep" list="timesteps" style="width: 200px">
         <datalist id="timesteps">
         <option value="0" label="0"></option>
@@ -25,7 +25,7 @@
         <option value="4" label="0.0002"></option>
         <option value="5" label="0.00025"></option>
         </datalist>
-        t = <span id="timestep-value">0</span>
+        t = <span id="timestep-value">0</span> <span id="loading-text"></span>
 
         <br/>
 
@@ -69,8 +69,9 @@
                 .sizeRange([0.1, 1.0]);
 
             //var dataCache = null;  // init data cache
-            const dataCache = {};
             var currentDataColumn = 'Mach_mag';  // default column
+            var currentSliderIndex = 0; // default time
+            const dataCache = {};
 
             // for timestep slider
             const timestepMap = [0, 0.00005, 0.0001, 0.00015, 0.0002, 0.00025];  // map timesteps. not sure if this is needed
@@ -79,10 +80,11 @@
 
             function updateTimestep() {
                 const index = parseInt(slider.value);
+                currentSliderIndex = index;  // store current index
                 const actualValue = timestepMap[index];
                 display.textContent = actualValue;  // use this to show actual value instead of 0 (approx)
                 console.log('Index:', index, 'Timestep:', actualValue);  // print index for linking to sample
-                updateChartIndex(index, currentDataColumn);
+                updateChartIndex(currentSliderIndex, currentDataColumn);
             }
 
             //slider.addEventListener('input', updateTimestep);
@@ -94,7 +96,7 @@
                     return Promise.resolve(dataCache[index]);
                 }
 
-                const filename = `data/${index}_sample1000.csv`;
+                const filename = `data_yupdate/${index}_sample1000.csv`;
                 console.log(`Loading: ${filename}`);
                 
                 return d3.csv(filename).then(data => {
@@ -129,17 +131,21 @@
 
                 
                 // Re-render with current data column
-                renderChart(currentDataColumn);
+                //renderChart(currentSliderIndex, currentDataColumn);
+                updateChartIndex(currentSliderIndex, currentDataColumn);
             }
 
             // call chart
             function renderChart(colorColumn) {
                 currentDataColumn = colorColumn;
+                updateChartIndex(currentSliderIndex, colorColumn);
 
+                /*
                 loadData(0).then(data => {
                     var chartData = mapData(data, colorColumn);
                     chartHolder.datum(chartData).call(myChart);
                 });
+                */
             }
 
             function updateChartIndex(index, colorColumn) {
@@ -172,7 +178,8 @@
 
             slider.addEventListener('input', updateTimestep);
             //updateTimestep(); // Set initial value
-            updateChartIndex(0, 'Mach_mag');
+            //updateChartIndex(0, 'Mach_mag');
+            //updateTimestep();
 
             /*
             slider.addEventListener('input', function() {
