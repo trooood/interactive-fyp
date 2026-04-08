@@ -5,7 +5,8 @@
         <title>Interactive FYP</title>
         <script src="dist/d3.v7.min.js"></script>
         <script src="dist/x3dom-full.js"></script>
-        <link rel="stylesheet" href="https://x3dom.org/release/x3dom.css"/>
+        <!-- <link rel="stylesheet" href="https://x3dom.org/release/x3dom.css"/> -->
+        <link rel="stylesheet" href="dist/x3dom.css"/>
         <script src="dist/d3-x3d.js"></script>
         <script src="chart-init.js"></script>  <!-- init chart with correct ranges -->
     </head>
@@ -50,6 +51,9 @@
         <input type="button" id="colour_sinebow" value="Sinebow"/>
 
         <div id="colourscheme-name"></div>
+        <div id="color-bar-container">
+            <div id="color-bar"></div>
+        </div>
 
         <br/><br/>
         Zoom in/out: scroll up/down<br/>
