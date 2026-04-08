@@ -5,8 +5,7 @@
         <title>Interactive FYP</title>
         <script src="dist/d3.v7.min.js"></script>
         <script src="dist/x3dom-full.js"></script>
-        <!-- <link rel="stylesheet" href="https://x3dom.org/release/x3dom.css"/> -->
-        <link rel="stylesheet" href="dist/x3dom.css"/>
+        <link rel="stylesheet" href="https://x3dom.org/release/x3dom.css"/>
         <script src="dist/d3-x3d.js"></script>
         <script src="chart-init.js"></script>  <!-- init chart with correct ranges -->
     </head>
@@ -52,7 +51,7 @@
 
         <div id="colourscheme-name"></div>
         <div id="color-bar-container">
-            <div id="color-bar"></div>
+            <canvas id="color-bar-canvas" style="width: 50%; height: 30px; display: block;"></canvas>
         </div>
 
         <br/><br/>
@@ -216,6 +215,42 @@
                     console.log(`Updated chart to index ${index}`);
                 });
             }
+
+            function updateColorBar(colors) {
+                const canvas = document.getElementById('color-bar-canvas');
+                
+                // Force canvas to have explicit dimensions
+                const container = canvas.parentElement;
+                const width = container.clientWidth || 800; // fallback width
+                const height = 20;
+                
+                canvas.width = width;
+                canvas.height = height;
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                
+                // clear canvas
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Draw each color as a vertical stripe
+                const stripeWidth = width / colors.length;
+                
+                for (let i = 0; i < colors.length; i++) {
+                    ctx.fillStyle = colors[i];
+                    ctx.fillRect(i * stripeWidth, 0, stripeWidth + 1, height);
+                }
+
+            }
+
+            // Also add this to initialize the color bar when page loads
+            window.addEventListener('load', function() {
+                // Set a default color scheme (turbo or whatever your default is)
+                if (typeof turboColors !== 'undefined') {
+                    updateColorBar(turboColors);
+                }
+            });
 
 
 
