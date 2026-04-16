@@ -3426,8 +3426,10 @@
         }).classed("label", true).append("Billboard").attr("axisOfRotation", "0 0 0").append("Transform").attr("translation", function (d) {
           return offset + " " + offset + " " + offset;
         }).append("Shape").call(makeSolid, color).append("Text").attr("string", function (d) {
-          return d.key;
-        }).append("FontStyle").attr("size", 1).attr("family", "TIMES").attr("style", "NORMAL").attr("justify", "START");
+          //return d.key;
+          return `(${d.x.toFixed(4)}, ${d.y.toFixed(4)}, ${d.z.toFixed(4)}): ${d.key.toFixed(4)}`;
+        }).append("FontStyle").attr("size", 1.5).attr("family", "TIMES").attr("style", "NORMAL").attr("justify", "START");
+          //.append("LineProperties").attr("linewidth", 2).attr("linetype", "SOLID");
         label.merge(labelSelect);
         labelSelect.transition().ease(d3__namespace.easeQuadOut).attr("translation", function (d) {
           return xScale(d.x) + " " + yScale(d.y) + " " + zScale(d.z);

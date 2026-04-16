@@ -159,7 +159,8 @@
                 
                 return {  // mapped values
                     values: data.map(d => ({
-                        key: "data",
+                        //key: "data",
+                        key: +d[colorColumn],
                         values: [
                             { key: "x", value: +d.x },
                             { key: "y", value: +d.y },

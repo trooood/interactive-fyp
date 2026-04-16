@@ -7,3 +7,4 @@ Created with [d3-x3d](https://github.com/jamesleesaunders/d3-x3d) D3 X3D Data Vi
 Modifications from the original source:
 - Scroll/zoom direction is reversed
 - Changed default font
+- Changed label on hover to show x, y, z, and value
