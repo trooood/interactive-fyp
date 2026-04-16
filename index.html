@@ -51,7 +51,11 @@
 
         <div id="colourscheme-name"></div>
         <div id="color-bar-container">
-            <canvas id="color-bar-canvas" style="width: 50%; height: 30px; display: block;"></canvas>
+            <table id="color-bar-table" style="width: 600px; height: 20px; border-collapse: collapse; table-layout: fixed;">
+                <tbody>
+                    <tr id="color-bar-row"></tr>
+                </tbody>
+            </table>
         </div>
 
         <br/><br/>
@@ -72,8 +76,8 @@
 
             // Declare the chart component
             var myChart = d3.x3d.chart.scatterPlot()
-                .width(600)
-                .height(600)
+                .width(700)
+                .height(700)
                 .mappings({ x: 'x', y: 'y', z: 'z', color: 'color', size: 'size' })
                 .colors(turboColors)  // default colur scheme
                 .sizeRange([0.1, 1.0]);
@@ -154,7 +158,7 @@
                 const displayElement = document.getElementById('data-minmax');
 
                 if (displayElement) {
-                    displayElement.textContent = `Currently showing ${displayName}; min = ${min.toFixed(2)}, max = ${max.toFixed(2)}`;
+                    displayElement.textContent = `Currently showing ${displayName}; min = ${min.toFixed(4)}, max = ${max.toFixed(4)}`;
                 }
                 
                 return {  // mapped values
@@ -184,12 +188,13 @@
                 if (colourArray) {
                     myChart.colors(colourArray);
                     
-                    // Optional: Update a display element to show current scheme
+                    // update display element to show current scheme
                     const schemeDisplay = document.getElementById('colourscheme-name');
                     if (schemeDisplay) {
                         schemeDisplay.textContent = `Current scheme: ${displayName}`;
                     }
                     updateChartIndex(currentSliderIndex, currentDataColumn);
+                    updateColorBar(colourArray);
                 }
 
                 // Re-render with current data column
@@ -218,40 +223,22 @@
             }
 
             function updateColorBar(colors) {
-                const canvas = document.getElementById('color-bar-canvas');
+                const displayColors = colors.slice(0, 8);
+                const row = document.getElementById('color-bar-row');
+                row.innerHTML = '';
                 
-                // Force canvas to have explicit dimensions
-                const container = canvas.parentElement;
-                const width = container.clientWidth || 800; // fallback width
-                const height = 20;
-                
-                canvas.width = width;
-                canvas.height = height;
-                canvas.style.width = width + 'px';
-                canvas.style.height = height + 'px';
-                
-                // clear canvas
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(0, 0, width, height);
-                
-                // Draw each color as a vertical stripe
-                const stripeWidth = width / colors.length;
-                
-                for (let i = 0; i < colors.length; i++) {
-                    ctx.fillStyle = colors[i];
-                    ctx.fillRect(i * stripeWidth, 0, stripeWidth + 1, height);
+                for (let i = 0; i < 8; i++) {
+                    const cell = document.createElement('td');
+                    cell.style.backgroundColor = displayColors[i];
+                    cell.style.width = '12.5%';
+                    cell.style.height = '20px';
+                    cell.style.margin = '0';
+                    cell.style.padding = '0';
+                    cell.style.border = 'none';
+                    row.appendChild(cell);
                 }
-
             }
 
-            // Also add this to initialize the color bar when page loads
-            window.addEventListener('load', function() {
-                // Set a default color scheme (turbo or whatever your default is)
-                if (typeof turboColors !== 'undefined') {
-                    updateColorBar(turboColors);
-                }
-            });
 
 
 
@@ -274,6 +261,11 @@
             document.getElementById('colour_sinebow').addEventListener('click', () => setColorScheme('sinebow'));
 
             slider.addEventListener('input', updateTimestep);
+            window.addEventListener('load', function() {  // default load colour scheme
+                if (typeof turboColors !== 'undefined') {
+                    updateColorBar(turboColors);
+                }
+            });
             //updateTimestep(); // Set initial value
             //updateChartIndex(0, 'Mach_mag');
             //updateTimestep();
