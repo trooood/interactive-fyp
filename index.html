@@ -68,11 +68,12 @@
             var chartHolder = d3.select("#chartholder");
 
             // load colour arrays
-            var turboColors = d3.quantize(d3.interpolateTurbo, 8);  // create array from continuous scheme
-            var plasmaColors = d3.quantize(d3.interpolatePlasma, 8);
-            var greysColors = d3.quantize(d3.interpolateGreys, 8);
-            var spectralColors = d3.quantize(d3.interpolateSpectral, 8).reverse();  // reversed
-            var sinebowColors = d3.quantize(d3.interpolateSinebow, 8).reverse();  // reversed
+            const colorStep = 8;
+            var turboColors = d3.quantize(d3.interpolateTurbo, colorStep);  // create array from continuous scheme
+            var plasmaColors = d3.quantize(d3.interpolatePlasma, colorStep);
+            var greysColors = d3.quantize(d3.interpolateGreys, colorStep);
+            var spectralColors = d3.quantize(d3.interpolateSpectral, colorStep).reverse();  // reversed
+            var sinebowColors = d3.quantize(d3.interpolateSinebow, colorStep).reverse();  // reversed
 
             // Declare the chart component
             var myChart = d3.x3d.chart.scatterPlot()
@@ -82,10 +83,13 @@
                 .colors(turboColors)  // default colur scheme
                 .sizeRange([0.1, 1.0]);
 
-            //var dataCache = null;  // init data cache
             var currentDataColumn = 'Mach_mag';  // default column
             var currentSliderIndex = 0; // default time
-            const dataCache = {};
+            const dataCache = {};  // init data cache
+
+            // store min/max values
+            var currentMinValue = null;
+            var currentMaxValue = null;
 
             // for timestep slider
             const timestepMap = [0, 0.00005, 0.0001, 0.00015, 0.0002, 0.00025];  // map timesteps. not sure if this is needed
@@ -154,6 +158,9 @@
                 const min = Math.min(...colorValues);
                 const max = Math.max(...colorValues);
 
+                currentMinValue = min;
+                currentMaxValue = max;
+
                 const displayName = columnNames[colorColumn];
                 const displayElement = document.getElementById('data-minmax');
 
@@ -174,6 +181,7 @@
                         ]
                     }))
                 };
+
             }
 
             function setColorScheme(scheme) {
@@ -219,31 +227,81 @@
                     var chartData = mapData(data, colorColumn);
                     chartHolder.datum(chartData).call(myChart);  // this calls the chart
                     console.log(`Updated chart to index ${index}`);
+
+                    const currentColors = myChart.colors() || turboColors;
+                    updateColorBar(currentColors);
                 });
             }
 
             function updateColorBar(colors) {
-                const displayColors = colors.slice(0, 8);
-                const row = document.getElementById('color-bar-row');
-                row.innerHTML = '';
+                const displayColors = colors.slice(0, colorStep);
+                let table = document.getElementById('color-bar-table');
+                if (!table) {
+                    table = document.createElement('table');
+                    table.id = 'color-bar-table';
+                    // Insert the table before the original row or append to body
+                    const originalRow = document.getElementById('color-bar-row');
+                    if (originalRow && originalRow.parentElement) {
+                        originalRow.parentElement.insertBefore(table, originalRow);
+                    } else {
+                        document.body.appendChild(table);        }
+                }
+
+
+                table.innerHTML = '';
                 
-                for (let i = 0; i < 8; i++) {
-                    const cell = document.createElement('td');
+                const colorRow = table.insertRow();
+                colorRow.id = 'color-bar-row';
+
+                for (let i = 0; i < colorStep; i++) {
+                    const cell = colorRow.insertCell();
                     cell.style.backgroundColor = displayColors[i];
                     cell.style.width = '12.5%';
                     cell.style.height = '20px';
                     cell.style.margin = '0';
                     cell.style.padding = '0';
                     cell.style.border = 'none';
-                    row.appendChild(cell);
+
                 }
+
+                const valueRow = table.insertRow();
+                const values = [];  // store range values for colourbar
+                
+                if (currentMinValue !== null && currentMaxValue !== null) {
+                    const step = (currentMaxValue - currentMinValue) / (colorStep-1);
+                    for (let i = 0; i < colorStep; i++) {
+                        values.push(currentMinValue + (step * i));
+                    }
+                }
+                else {
+                    for (let i = 0; i < colorStep; i++) {
+                        values.push('');
+                    }
+                }
+
+                // add values to bottom cells
+                for (let i = 0; i < colorStep; i++) {
+                    const cell = valueRow.insertCell();
+                    cell.style.textAlign = 'center';
+                    cell.style.fontSize = '15px';
+                    cell.style.padding = '4px 0';
+                    cell.style.border = 'none';
+                    //cell.style.borderTop = 'none';
+                    
+                    // Format the value (adjust decimal places as needed)
+                    if (typeof values[i] === 'number') {
+                        cell.textContent = values[i].toFixed(4);
+                    } else {
+                        cell.textContent = values[i];
+                    }
+                }
+
             }
 
 
 
 
-            // Hook a button to refresh chart
-            //d3.select("#refresh").attr("onclick", "refreshChart()");
+
 
             // buttons for data column
             document.getElementById('data_mach').addEventListener('click', () => renderChart('Mach_mag'));
@@ -261,7 +319,7 @@
             document.getElementById('colour_sinebow').addEventListener('click', () => setColorScheme('sinebow'));
 
             slider.addEventListener('input', updateTimestep);
-            window.addEventListener('load', function() {  // default load colour scheme
+            window.addEventListener('load', function() {  // default load colour scheme (can be edited?)
                 if (typeof turboColors !== 'undefined') {
                     updateColorBar(turboColors);
                 }
