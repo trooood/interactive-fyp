@@ -12,6 +12,10 @@
 
     <body>
 
+        <div id="loading-status">
+            Loading data...
+        </div>
+
         <div id="chartholder"></div>
         <!-- <input type="button" id="refresh" value="Refresh"/> -->
 
@@ -83,6 +87,10 @@
                 .colors(turboColors)  // default colur scheme
                 .sizeRange([0.1, 1.0]);
 
+            // loading vars
+            var isLoading = true;
+            var loadingFiles = [];
+
             var currentDataColumn = 'Mach_mag';  // default column
             var currentSliderIndex = 0; // default time
             const dataCache = {};  // init data cache
@@ -123,6 +131,61 @@
                 'sinebow': sinebowColors
             };
 
+
+
+            // Preload all data files upfront
+            function preloadAllData() {
+                const totalFiles = 6;  // indices 0 through 5
+                const loadingDiv = document.getElementById('loading-status');
+                const chartHolder = document.getElementById('chartholder');
+                
+                // Create an array of promises - one for each timestep
+                const loadPromises = [];
+                
+                for (let i = 0; i <= 5; i++) {  // indices 0,1,2,3,4,5
+                    const filename = `data/${i}_sample1000.csv`;
+                    
+                    // Update loading text
+                    loadingDiv.innerHTML = `Loading data... ${filename}<br>`;
+                    
+                    // Create a promise for this file
+                    const promise = d3.csv(filename).then(data => {
+                        dataCache[i] = data;  // cache the data
+                        console.log(`Loaded ${filename}: ${data.length} rows`);
+                        loadingDiv.innerHTML += `Loaded ${filename}<br>`;
+                        return data;
+                    }).catch(error => {
+                        console.error(`Failed to load ${filename}:`, error);
+                        loadingDiv.innerHTML += `Failed to load ${filename}<br>`;
+                        throw error;  // re-throw so Promise.all knows it failed
+                    });
+                    
+                    loadPromises.push(promise);
+                }
+                
+                // Wait for ALL files to load
+                return Promise.all(loadPromises)
+                    .then(() => {
+                        console.log('All data files loaded successfully');
+                        loadingDiv.innerHTML += '<br>All data loaded! Rendering chart...';
+                        isLoading = false;  // set flag to false
+                        
+                        // Hide loading div and show chart
+                        loadingDiv.style.display = 'none';
+                        chartHolder.style.display = 'block';
+                        
+                        return true;
+                    })
+                    .catch(error => {
+                        console.error('Failed to load some files:', error);
+                        loadingDiv.innerHTML += '<br><strong style="color: red;">Error loading some files. Please refresh the page.</strong>';
+                        return false;
+                    });
+            }
+
+
+
+
             function updateTimestep() {
                 const index = parseInt(slider.value);
                 currentSliderIndex = index;  // store current index
@@ -131,9 +194,6 @@
                 console.log('Index:', index, 'Timestep:', actualValue);  // print index for linking to sample
                 updateChartIndex(currentSliderIndex, currentDataColumn);
             }
-
-            //slider.addEventListener('input', updateTimestep);
-            //updateTimestep(); // Set initial value
 
             // load data into cache
             function loadData(index) {
@@ -337,9 +397,14 @@
 
             // Initial render
             initialize();
-            renderChart('Mach_mag');  // default
-            setColorScheme('turbo');
+            //renderChart('Mach_mag');  // default
+            //setColorScheme('turbo');
 
+            preloadAllData().then(() => {
+                renderChart('Mach_mag');  // default
+                setColorScheme('turbo');
+                updateTimestep();
+            });
 
 
         </script>
