@@ -15,6 +15,17 @@
         <div id="chartholder"></div>
         <!-- <input type="button" id="refresh" value="Refresh"/> -->
 
+        Number of samples:
+        <input type="range" min="0" max="2" step="1" value="0" id="sample" list="samples" style="width: 200px">
+        <datalist id="samples">
+        <option value="0" label="1000"></option>
+        <option value="1" label="5000"></option>
+        <option value="2" label="10000"></option>
+        </datalist>
+        <span id="num-samples">0</span>
+
+        <br/>
+
         Time:
         <input type="range" min="0" max="5" step="1" value="0" id="timestep" list="timesteps" style="width: 200px">
         <datalist id="timesteps">
@@ -29,7 +40,7 @@
         (Please wait after moving the slider as new data is loading.)
         <!-- <span id="loading-text"></span> -->
 
-        <br/>
+        <br/><br/>
 
         Data columns:
         <input type="button" id="data_mach" value="Mach Number"/>
@@ -92,6 +103,16 @@
             var currentMinValue = null;
             var currentMaxValue = null;
 
+            // for sample slider
+            const sampleMap = {
+                0: '1000',
+                1: '5000',
+                2: '10000'
+            };
+            const sampleSlider = document.getElementById('sample');
+            const sampleDisplay = document.getElementById('num-samples');
+            //const sampleSize = sampleMap[sampleIndex];
+
             // for timestep slider
             const timestepMap = [0, 0.00005, 0.0001, 0.00015, 0.0002, 0.00025];  // map timesteps. not sure if this is needed
             const slider = document.getElementById('timestep');
@@ -123,6 +144,14 @@
                 'spectral': spectralColors,
                 'sinebow': sinebowColors
             };
+
+            function updateSampleDisplay() {
+                const index = parseInt(sampleSlider.value);
+                const displayValue = sampleMap[index];
+                sampleDisplay.textContent = displayValue;
+                console.log('Sample index:', index, 'Samples:', displayValue);
+                // updateChart...
+            }
 
             function updateTimestep() {
                 const index = parseInt(slider.value);
@@ -319,6 +348,7 @@
             document.getElementById('colour_spectral').addEventListener('click', () => setColorScheme('spectral'));
             document.getElementById('colour_sinebow').addEventListener('click', () => setColorScheme('sinebow'));
 
+            sampleSlider.addEventListener('input', updateSampleDisplay);
             slider.addEventListener('input', updateTimestep);
             window.addEventListener('load', function() {  // default load colour scheme (can be edited?)
                 if (typeof turboColors !== 'undefined') {
@@ -340,6 +370,7 @@
             initialize();
             renderChart('Mach_mag');  // default
             setColorScheme('turbo');
+            updateSampleDisplay();
 
 
 
