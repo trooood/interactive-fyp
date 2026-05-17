@@ -37,7 +37,6 @@
         <option value="5" label="0.00025"></option>
         </datalist>
         t = <span id="timestep-value">0</span> seconds
-        (Please wait after moving the slider as new data is loading.)
         <!-- <span id="loading-text"></span> -->
 
         <br/><br/>
@@ -92,11 +91,12 @@
                 .width(700)
                 .height(700)
                 .mappings({ x: 'x', y: 'y', z: 'z', color: 'color', size: 'size' })
-                .colors(turboColors)  // default colur scheme
-                .sizeRange([0.1, 1.0]);
+                .colors(turboColors);  // default colur scheme
+                //.sizeRange([0.01, 1.0]);  // points are always same size for each sample size
 
             var currentDataColumn = 'Mach_mag';  // default column
-            var currentSliderIndex = 0; // default time
+            var currentSliderIndex = 0; // default time (0)
+            var currentSampleIndex = 0;  // default samples (1000)
             const dataCache = {};  // init data cache
 
             // store min/max values
@@ -105,9 +105,9 @@
 
             // for sample slider
             const sampleMap = {
-                0: '1000',
-                1: '5000',
-                2: '10000'
+                0: { samples: '1000', size: 0.5},
+                1: { samples: '5000', size: 0.1},
+                2: { samples: '10000', size: 0.05}
             };
             const sampleSlider = document.getElementById('sample');
             const sampleDisplay = document.getElementById('num-samples');
@@ -147,42 +147,54 @@
 
             function updateSampleDisplay() {
                 const index = parseInt(sampleSlider.value);
-                const displayValue = sampleMap[index];
-                sampleDisplay.textContent = displayValue;
-                console.log('Sample index:', index, 'Samples:', displayValue);
-                // updateChart...
+                currentSampleIndex = index;
+
+                const sampleInfo = sampleMap[index];
+                sampleDisplay.textContent = sampleInfo.samples;
+
+                console.log('Sample index:', index, 'Samples:', sampleInfo.samples, 'Point size:', sampleInfo.size);
+
+
+                updateChart();
             }
 
             function updateTimestep() {
                 const index = parseInt(slider.value);
                 currentSliderIndex = index;  // store current index
+
                 const actualValue = timestepMap[index];
                 display.textContent = actualValue;  // use this to show actual value instead of 0 (approx)
+
                 console.log('Index:', index, 'Timestep:', actualValue);  // print index for linking to sample
-                updateChartIndex(currentSliderIndex, currentDataColumn);
+                //updateChart(currentSliderIndex, currentDataColumn);
+                updateChart();
             }
 
             //slider.addEventListener('input', updateTimestep);
             //updateTimestep(); // Set initial value
 
             // load data into cache
-            function loadData(index) {
-                if (dataCache[index]) {  // if already cached
-                    return Promise.resolve(dataCache[index]);
+            function loadData(timeIndex, sampleIndex) {
+                const cacheKey = `${timeIndex}_${sampleIndex}`;
+
+                if (dataCache[cacheKey]) {  // if already cached
+                    return Promise.resolve(dataCache[cacheKey]);
                 }
 
-                const filename = `data/${index}_sample1000.csv`;
+                const sampleInfo = sampleMap[sampleIndex];
+                const sampleCount = sampleInfo.samples;
+                const filename = `data/${timeIndex}_sample${sampleCount}.csv`;
                 console.log(`Loading: ${filename}`);
                 
                 return d3.csv(filename).then(data => {
-                    console.log(`Loaded index ${index}:`, data.length, "rows");
-                    dataCache[index] = data;  // cache data when loaded
+                    console.log(`Loaded timeIndex ${timeIndex}, sampleIndex ${sampleIndex}:`, data.length, "rows");
+                    dataCache[cacheKey] = data;  // cache data when loaded
                     return data;
                 });
             }
 
             // map csv data to chart structure
-            function mapData(data, colorColumn) {
+            function mapData(data, colorColumn, sampleIndex) {
 
                 const colorValues = data.map(d => +d[colorColumn]);  // gets the stats from the data
                 const min = Math.min(...colorValues);
@@ -197,6 +209,12 @@
                 if (displayElement) {
                     displayElement.textContent = `Currently showing ${displayName}; min = ${min.toFixed(4)}, max = ${max.toFixed(4)}`;
                 }
+
+                // Get the point size based on sample count
+                //const sampleInfo = sampleMap[sampleIndex];
+                //const sampleCount = sampleInfo.samples;  // this is only used for debugging
+                //const pointSize = sampleInfo.size;  // get size from size map
+                //console.log(`sampleCount ${sampleCount}, pointSize ${pointSize}`);
                 
                 return {  // mapped values
                     values: data.map(d => ({
@@ -207,7 +225,7 @@
                             { key: "y", value: +d.y },
                             { key: "z", value: +d.z },
                             { key: "color", value: +d[colorColumn] },
-                            { key: "size", value: 0.1 }
+                            { key: "size", value: 1.0 }  // size is changed in updateChart (not here)
                         ]
                     }))
                 };
@@ -231,18 +249,20 @@
                     if (schemeDisplay) {
                         schemeDisplay.textContent = `Current scheme: ${displayName}`;
                     }
-                    updateChartIndex(currentSliderIndex, currentDataColumn);
+                    //updateChart(currentSliderIndex, currentDataColumn);
+                    updateChart();
                     updateColorBar(colourArray);
                 }
 
                 // Re-render with current data column
-                //updateChartIndex(currentSliderIndex, currentDataColumn);
+                //updateChart(currentSliderIndex, currentDataColumn);
             }
 
             // call chart
             function renderChart(colorColumn) {
                 currentDataColumn = colorColumn;
-                updateChartIndex(currentSliderIndex, colorColumn);
+                //updateChart(currentSliderIndex, colorColumn);
+                updateChart();
 
                 /*
                 loadData(0).then(data => {
@@ -252,11 +272,25 @@
                 */
             }
 
-            function updateChartIndex(index, colorColumn) {
-                loadData(index).then(data => {
-                    var chartData = mapData(data, colorColumn);
+            //function updateChart(index, colorColumn) {
+            function updateChart() {
+
+                // Get current values from both sliders
+                const timeIndex = currentSliderIndex;
+                const sampleIndex = currentSampleIndex;
+
+                loadData(timeIndex, sampleIndex).then(data => {
+
+                    // Get the point size based on sample count
+                    const sampleInfo = sampleMap[sampleIndex];
+                    const sampleCount = sampleInfo.samples;  // this is only used for debugging
+                    const pointSize = sampleInfo.size;  // get size from size map
+                    console.log(`sampleCount ${sampleCount}, pointSize ${pointSize}`);
+                    myChart.sizeRange([sampleInfo.size, 1.0]);
+
+                    var chartData = mapData(data, currentDataColumn, sampleIndex);
                     chartHolder.datum(chartData).call(myChart);  // this calls the chart
-                    console.log(`Updated chart to index ${index}`);
+                    console.log(`Updated chart to timeIndex ${timeIndex}, sampleIndex ${sampleIndex}`);
 
                     const currentColors = myChart.colors() || turboColors;
                     updateColorBar(currentColors);
@@ -274,9 +308,9 @@
                     if (originalRow && originalRow.parentElement) {
                         originalRow.parentElement.insertBefore(table, originalRow);
                     } else {
-                        document.body.appendChild(table);        }
+                        document.body.appendChild(table);
+                    }
                 }
-
 
                 table.innerHTML = '';
                 
@@ -356,7 +390,7 @@
                 }
             });
             //updateTimestep(); // Set initial value
-            //updateChartIndex(0, 'Mach_mag');
+            //updateChart(0, 'Mach_mag');
             //updateTimestep();
 
             /*
@@ -368,9 +402,9 @@
 
             // Initial render
             initialize();
-            renderChart('Mach_mag');  // default
-            setColorScheme('turbo');
-            updateSampleDisplay();
+            renderChart('Mach_mag');
+            setColorScheme('turbo');  // default
+            //updateSampleDisplay();
 
 
 
