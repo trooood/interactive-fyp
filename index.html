@@ -10,7 +10,7 @@
         <script src="chart-init.js"></script>  <!-- init chart with correct ranges -->
         <style>
             .container {
-                width: 700px;
+                width: 800px;
                 margin: 0 auto;  /* center */
             }
             #chartholder, #color-bar-container {
@@ -46,10 +46,12 @@
 
     <body>
         <div class="container">
-
             <div class="header-block">
                 Interactive FYP:
-                <div class="title">Data Extracted From a CFD Simulation of a Hydrogen Leak from a Pressurised Tank</div>
+                <div class="title">
+                    Data Extracted From a CFD Simulation of a<br/>
+                    Hydrogen Leak from a Pressurised Tank
+                </div>
             </div>
 
             <hr class="divider"/>
@@ -71,7 +73,7 @@
             </div>
 
             <div class="caption">
-                <b>Figure 2.</b> <span id="data-description-2">Mach number</span> colourbar.
+                <b>Figure 2.</b> Colourbar for <span id="data-description-2">Mach number</span> values (colour scheme: <span id="colourscheme-name">Turbo</span>).
             </div>
 
             <hr class="divider"/>
@@ -123,19 +125,28 @@
 
             <div id="colourscheme-name"></div>
 
+            <hr class="divider"/>
+
+            <input type="button" id="instructions" value="How To Use"/>
+            <input type="button" id="credits" value="Credits"/>
+
+            <br/><br/>
+
+            <!--
             <br/><br/>
             Zoom in/out: scroll up/down<br/>
             Rotate: click + drag<br/>
             Pan: middle click + drag<br/>
-
-            <script src="script.js"></script>
 
             <br/><br/>
             
             <div style="clear: both">Created with <a href="https://github.com/jamesleesaunders/d3-x3d">d3-x3d</a> D3 X3D Data
             Visualization Library.
             </div>
+            -->
 
         </div>
+
+        <script src="script.js"></script>
     </body>
 </html>

@@ -17,7 +17,7 @@ var myChart = d3.x3d.chart.scatterPlot()
     .height(600)
     .mappings({ x: 'x', y: 'y', z: 'z', color: 'color', size: 'size' })
     .colors(turboColors);  // default colur scheme
-    //.sizeRange([0.01, 1.0]);  // points are always same size for each sample size
+    //.sizeRange([0.01, 1.0]);  // set later, depends on number of samples
 
 var currentDataColumn = 'Mach_mag';  // default column
 var currentSliderIndex = 0; // default time (0)
@@ -46,11 +46,11 @@ const display = document.getElementById('timestep-value');
 // for getting the values from the buttons
 const columnNames = {
     'Mach_mag': 'Mach number',
-    'U_mag': 'Velocity',
-    'T': 'Temperature',
-    'H2': 'Hydrogen concentration',
-    'p': 'Pressure',
-    'rho': 'Density'
+    'U_mag': 'velocity',
+    'T': 'temperature',
+    'H2': 'hydrogen concentration',
+    'p': 'pressure',
+    'rho': 'density'
 };
 
 // for getting the names of the colour scheme
@@ -69,6 +69,13 @@ const colourArrays = {
     'spectral': spectralColors,
     'sinebow': sinebowColors
 };
+
+// for buttons below
+const howToUseBtn = document.getElementById('instructions');
+const creditsBtn = document.getElementById('credits');
+
+
+// all functions
 
 function updateSampleDisplay() {
     const index = parseInt(sampleSlider.value);
@@ -180,6 +187,7 @@ function setColorScheme(scheme) {
         if (schemeDisplay) {
             schemeDisplay.textContent = `Current scheme: ${displayName}`;
         }
+        updateColorSchemeDescription(displayName);  // updates the caption
         //updateChart(currentSliderIndex, currentDataColumn);
         updateChart();
         updateColorBar(colourArray);
@@ -187,6 +195,13 @@ function setColorScheme(scheme) {
 
     // Re-render with current data column
     //updateChart(currentSliderIndex, currentDataColumn);
+}
+
+function updateColorSchemeDescription(displayName) {  // for updating the caption
+    const dataDesc = document.getElementById('colourscheme-name');
+    if (dataDesc) {
+        dataDesc.textContent = displayName;
+    }
 }
 
 // call chart
@@ -290,6 +305,40 @@ function updateColorBar(colors) {
             cell.textContent = values[i];
         }
     }
+}
+
+function textToggleButtons() {
+
+    // containers for text
+    const howToUseText = document.createElement('div');
+    howToUseText.id = 'how-to-use-text';
+    howToUseText.innerHTML = `Zoom in/out: scroll up/down<br/>
+                              Rotate: click + drag<br/>
+                              Pan: middle click + drag<br/>`;
+
+    const creditsText = document.createElement('div');
+    creditsText.id = 'credits-text';
+    creditsText.innerHTML = `Created with <a href="https://github.com/jamesleesaunders/d3-x3d">d3-x3d</a> D3 X3D Data Visualization Library.`;
+
+    // Initially hide both
+    howToUseText.style.display = 'none';
+    creditsText.style.display = 'none';
+
+    // put text under buttons
+    const buttonsContainer = howToUseBtn.parentNode;
+    buttonsContainer.appendChild(howToUseText, buttonsContainer.querySelector('br'));
+    buttonsContainer.appendChild(creditsText, howToUseText);
+
+    // button click handlers
+    howToUseBtn.addEventListener('click', () => {
+        howToUseText.style.display = 'block';
+        creditsText.style.display = 'none';
+    });
+    
+    creditsBtn.addEventListener('click', () => {
+        howToUseText.style.display = 'none';
+        creditsText.style.display = 'block';
+    });
 
 }
 
@@ -315,24 +364,17 @@ document.getElementById('colour_sinebow').addEventListener('click', () => setCol
 
 sampleSlider.addEventListener('input', updateSampleDisplay);
 slider.addEventListener('input', updateTimestep);
+/*
 window.addEventListener('load', function() {  // default load colour scheme (can be edited?)
     if (typeof turboColors !== 'undefined') {
         updateColorBar(turboColors);
     }
-});
-//updateTimestep(); // Set initial value
-//updateChart(0, 'Mach_mag');
-//updateTimestep();
-
-/*
-slider.addEventListener('input', function() {
-    const actualValue = timestepMap[this.value];  // if don't need actual value can remove
-    console.log('Timestep:', actualValue);
 });
 */
 
 // Initial render
 initialize();
 renderChart('Mach_mag');
-setColorScheme('turbo');  // default
+setColorScheme('turbo');
 //updateSampleDisplay();
+textToggleButtons();
