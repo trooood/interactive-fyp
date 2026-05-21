@@ -72,6 +72,7 @@ const colourArrays = {
 
 // for buttons below
 const howToUseBtn = document.getElementById('instructions');
+const aboutBtn = document.getElementById('about');
 const creditsBtn = document.getElementById('credits');
 
 
@@ -307,7 +308,15 @@ function updateColorBar(colors) {
     }
 }
 
+
+
 function textToggleButtons() {
+
+    function hideAllButtonText() {
+        howToUseText.style.display = 'none';
+        aboutText.style.display = 'none';
+        creditsText.style.display = 'none';
+    }
 
     // containers for text
     const howToUseText = document.createElement('div');
@@ -320,23 +329,31 @@ function textToggleButtons() {
     creditsText.id = 'credits-text';
     creditsText.innerHTML = `Created with <a href="https://github.com/jamesleesaunders/d3-x3d">d3-x3d</a> D3 X3D Data Visualization Library.`;
 
-    // Initially hide both
-    howToUseText.style.display = 'none';
-    creditsText.style.display = 'none';
+    const aboutText = document.createElement('div');
+    aboutText.id = 'about-text';
+    aboutText.innerHTML = `about placeholder`;
+
+    hideAllButtonText();  // Initially hide all button text
 
     // put text under buttons
     const buttonsContainer = howToUseBtn.parentNode;
-    buttonsContainer.appendChild(howToUseText, buttonsContainer.querySelector('br'));
-    buttonsContainer.appendChild(creditsText, howToUseText);
+    buttonsContainer.appendChild(howToUseText);
+    buttonsContainer.appendChild(aboutText);
+    buttonsContainer.appendChild(creditsText);
 
     // button click handlers
     howToUseBtn.addEventListener('click', () => {
+        hideAllButtonText();
         howToUseText.style.display = 'block';
-        creditsText.style.display = 'none';
     });
-    
+
+    aboutBtn.addEventListener('click', () => {
+        hideAllButtonText();
+        aboutText.style.display = 'block';
+    });
+
     creditsBtn.addEventListener('click', () => {
-        howToUseText.style.display = 'none';
+        hideAllButtonText();
         creditsText.style.display = 'block';
     });
 
